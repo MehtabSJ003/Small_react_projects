@@ -1,3 +1,6 @@
+import { setSelectionRange } from "@testing-library/user-event/dist/utils";
+import { useState } from "react";
+
 const questions = [
   {
     id: 3457,
@@ -35,6 +38,26 @@ const questions = [
 export default function App() {
   return <FlashCards />;
 }
+
 function FlashCards() {
-  return <div>TODO</div>;
+  const [selectedID, setSelectedID] = useState(null);
+
+  function handleClick(id) {
+    setSelectedID(id !== selectedID ? id : null);
+  }
+
+  return (
+    <div className="flashcards">
+      {questions.map((question) => (
+        <div
+          key={question.id}
+          className={question.id === selectedID ? "selected" : ""}
+          onClick={() => handleClick(question.id)}>
+          <p>
+            {question.id === selectedID ? question.answer : question.question}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
 }
