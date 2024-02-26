@@ -1,10 +1,5 @@
 import { useState } from "react";
 
-const initialItems = [
-  { id: 1, description: "Passports", quantity: 2, packed: false },
-  { id: 2, description: "Socks", quantity: 12, packed: true },
-  { id: 3, description: "Charger", quantity: 1, packed: false },
-];
 export default function App() {
   // Used this state here because it is required by Form component as well as PackingList component
   const [items, setItems] = useState([]);
@@ -13,14 +8,31 @@ export default function App() {
     setItems((items) => [...items, item]);
   }
 
+  function handleDeleteItem(id) {
+    setItems((items) => items.filter((item) => item.id !== id));
+  }
+
+  function handleToggleItem(id) {
+    setItems((items) =>
+      items.map((item) => {
+        if (item.id !== id) return item;
+        return { ...item, packed: !item.packed };
+      })
+    );
+  }
+
   return (
     <div className="app">
       <Logo />
       {/* Passed handleAddItems as a prop to form component */}
       <Form onAddItems={handleAddItems} />
       {/* Passed items state as a prop to PackingList component */}
-      <PackingList items={items} />
-      <Stats />
+      <PackingList
+        items={items}
+        onDeleteItems={handleDeleteItem}
+        onToggleItems={handleToggleItem}
+      />
+      <Stats items={items} />
     </div>
   );
 }
@@ -69,32 +81,50 @@ function Form({ onAddItems }) {
     </form>
   );
 }
-function PackingList({ items }) {
+function PackingList({ items, onDeleteItems, onToggleItems }) {
   return (
     <div className="list">
       <ul>
         {items.map((item) => (
-          <Item item={item} key={item.id} />
+          <Item
+            item={item}
+            onDeleteItems={onDeleteItems}
+            onToggleItems={onToggleItems}
+            key={item.id}
+          />
         ))}
       </ul>
     </div>
   );
 }
 
-function Item({ item }) {
+function Item({ item, onDeleteItems, onToggleItems }) {
   return (
     <li>
+      <input
+        type="checkbox"
+        value={item.packed}
+        onChange={() => onToggleItems(item.id)}
+      />
       <span style={item.packed ? { textDecoration: "line-through" } : {}}>
         {item.quantity} {item.description}
       </span>
-      <button>❌&times;</button>
+      <button onClick={() => onDeleteItems(item.id)}>❌&times;</button>
     </li>
   );
 }
-function Stats() {
+function Stats({ items }) {
+  const numItems = items.length;
+  const numPacked = items.filter((item) => item.packed).length;
+  const percentage = Math.round((numPacked / numItems) * 100);
   return (
     <footer className="stats">
-      <em>🧳 You have X items in your list, and you already packed X (X%)</em>
+      <em>
+        {percentage === 100
+          ? "All items are packed!"
+          : `🧳 You have ${numItems} items in your list, and you already packed${" "}
+        ${numPacked} (${percentage || 0}%)`}
+      </em>
     </footer>
   );
 }
